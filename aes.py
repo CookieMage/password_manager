@@ -1,4 +1,8 @@
-from Crypto.Cipher import AES
+import crypto
+
+c= crypto.Cipher
+
+from crypto.Cipher import AES
 from random import randbytes
 
 def encrypt(key, plaintext):
