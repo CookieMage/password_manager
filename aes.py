@@ -1,28 +1,34 @@
 from Crypto.Cipher import AES
-from random import randbytes
+import random
 
 def encrypt(key, plaintext):
-    cipher = AES.new(key, AES.MODE_EAX)
+    cipher = AES.new(key, AES.MODE_CTR)
 
-    nonce = cipher.nonce
     ciphertext, tag = cipher.encrypt_and_digest(bytes(plaintext, encoding = "ascii"))
-    return nonce, ciphertext, tag
+    return ciphertext, tag
 
-def decrypt(key, nonce, ciphertext, tag):
-    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
-    plaintext = cipher.decrypt(ciphertext)
-    try:
-        cipher.verify(tag)
-        print("The message is authentic:", plaintext)
-    except ValueError:
-        print("Key incorrect or message corrupted")
+def decrypt(key, nonce, ciphertext):
+    cipher = AES.new(key, AES.MODE_CTR, nonce=nonce)
+    plaintext = cipher.decrypt(ciphertext, output=None)
+    print(plaintext)
+    #try:
+    #    cipher.verify(tag)
+    #    print("The message is authentic:", plaintext)
+    #except ValueError:
+    #    print("Key incorrect or message corrupted")
 
 def main():
-    key = randbytes(16)
+    key = bytes("1234567890123456", encoding = "ascii")
     print(key)
-    nonce, message, tag = encrypt(key, "hello")
+    nonce, message, _ = encrypt(key, "hello")
+    print(nonce)
     print(message)
-    print(decrypt(key, nonce, message, tag))
+    decrypt(key, nonce, message)
+    decrypt(key, b'\xd7\xb1\xac\x85\\\x8b\xc4Ax\xf8m\xafB\xf8^\xff', b'\x9d\xb4\xd8:\xde')
 
 if __name__ == "__main__":
+    raise BrokenPipeError
     main()
+
+
+how does ctr work?????
