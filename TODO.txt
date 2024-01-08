@@ -1,0 +1,5 @@
+Dateiformat soll so aussehen:
+Man liest 16 bytes: Darin ist eine Zahl, welche beschreibt, wieviele bytes den nächsten Abschnitt ausmchen
+Dann das ganze wiederholen bis man fertig ist
+
+Der Text muss in binärcode sein und dann kann das ganze als beliebiges Dateiformat gespeichert werden

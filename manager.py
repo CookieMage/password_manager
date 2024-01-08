@@ -37,6 +37,8 @@ def search_entry(entry, seed, counter):
     data = []
     headings = []
     data = read_data()
+    for i,e in enumerate(data):
+        data[i] = e.replace("\\\\", "\\")
     for e in data:
         headings += [decode_data(e, seed, counter).split(":")[0]]
 
