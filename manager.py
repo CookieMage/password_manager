@@ -1,43 +1,44 @@
-import encryption as crypt
+import aes
+from Crypto.Util import Counter
 
-def encode_data(platform, account_user_name, account_mail, account_password, seed):
+def encode_data(platform, account_user_name, account_mail, account_password, seed, counter):
     text_0 = platform + ":"
     text_1 = " Username: " + account_user_name + " Mail: " + account_mail
     text_1 += " PW: " + account_password
-    text_0 = crypt.encrypt(text_0, seed)
-    text_1 = crypt.encrypt(text_1, seed)
-    text_1 = crypt.encrypt(text_1, platform)
+    text_0 = aes.encrypt(seed, text_0, counter)
+    text_1 = aes.encrypt(seed, text_1, counter)
+    #text_1 = aes.encrypt(platform, text_1, counter)
     return text_0 + text_1
 
 def add_data(text):
-    with open("password_manager\\passwords.txt", "a", encoding="utf8") as f:
-        f.write(text + "\n")
+    with open("passwords.txt", "a", encoding="utf8") as f:
+        f.write(str(text) + "\n")
 
 def read_data():
-    with open("password_manager\\passwords.txt", "r", encoding="utf8") as f:
+    with open("passwords.txt", "r", encoding="utf8") as f:
         data = f.readlines()
     return data
 
-def decode_data(data, seed):
-    text = crypt.decrypt(data, seed)
+def decode_data(data, seed, counter):
+    text = aes.decrypt(seed, data.encode('iso-8859-15'), counter)
     return text
 
-def add_entry():
+def add_entry(counter):
     platform = input("Für welche Plattform soll ein Eintrag erstellt werden?   ")
     account_user_name = input("Wie lautet der Account-Name?                             ")
     account_mail = input("Wie lautet die Account-Mail?                             ")
     account_password = input("Wie lautet das Account-Paswort?                          ")
     seed = input("Wie lautet der Verschlüsselungsseed?                     ")
-    encoded = encode_data(platform, account_user_name, account_mail, account_password, seed)
+    encoded = encode_data(platform, account_user_name, account_mail, account_password, seed, counter)
     add_data(encoded)
 
-def search_entry(entry, seed):
+def search_entry(entry, seed, counter):
     entry = str(entry).lower()
     data = []
     headings = []
     data = read_data()
     for e in data:
-        headings += [decode_data(e, seed).split(":")[0]]
+        headings += [decode_data(e, seed, counter).split(":")[0]]
 
     no_hit = []
     for i,e in enumerate(headings):
@@ -74,13 +75,12 @@ def search_entry(entry, seed):
 
 
 
-def decode_entry(entry, seed):
+def decode_entry(entry, seed, counter):
     try:
-        platform, data = search_entry(entry, seed)
+        platform, data = search_entry(entry, seed, counter)
     except IndexError as exc:
         raise exc
-    data = decode_data(data, platform)
-    data = decode_data(data, seed)
+    data = decode_data(seed, data, counter)
     data = data.split()
     text = platform + ":"
     for i in range(0, 6, 2):
@@ -93,23 +93,24 @@ def decode_entry(entry, seed):
 
 def main():
     directions = "If you want to quit, type 'quit'. Do you want to 'add' or 'read' an entry?\n"
-    mode = input(directions).lower()
+    mode = "add" #input(directions).lower()
+    ctr = Counter.new(128)
     while mode != "quit":
         if mode == 'read':
             platform = input("Which entry are you looking for?\n")
-            seed = input("What is your key?\n")
+            seed = bytes(input("What is your key?\n"), encoding="utf-8")
             try:
-                decode_entry(platform, seed)
+                decode_entry(platform, seed, ctr)
             except IndexError:
                 print("\nThe platform you are looking for could not be found. Please try again.")
             mode = input(directions).lower()
         elif mode == 'add':
-            platform = input("platform: ")
-            account_user_name = input("user_name: ")
-            account_mail = input("mail: ")
-            account_password = input("password: ")
-            seed = input("key: ")
-            text = encode_data(platform, account_user_name, account_mail, account_password, seed)
+            platform = "Platform" #input("platform: ")
+            account_user_name = "User" #input("user_name: ")
+            account_mail = "Mail" #input("mail: ")
+            account_password = "PW" #input("password: ")
+            seed = b"1234567890123456" #bytes(input("key: "), encoding="utf-8")
+            text = encode_data(platform, account_user_name, account_mail, account_password, seed, ctr)
             add_data(text)
             mode = input(directions).lower()
         else:
