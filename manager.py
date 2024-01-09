@@ -2,26 +2,36 @@ import aes
 from Crypto.Util import Counter
 
 def encode_data(platform, account_user_name, account_mail, account_password, seed, counter):
-    text_0 = platform + ":"
-    text_1 = " Username: " + account_user_name + " Mail: " + account_mail
-    text_1 += " PW: " + account_password
-    text_0 = aes.encrypt(seed, text_0, counter)
-    text_1 = aes.encrypt(seed, text_1, counter)
-    #text_1 = aes.encrypt(platform, text_1, counter)
-    return text_0 + text_1
+    text = platform + ":"
+    text += " Username: " + account_user_name + " Mail: " + account_mail
+    text += " PW: " + account_password
+    text = aes.encrypt(seed, text, counter)
+    length = len(text)
+    length = '{0:016b}'.format(length).encode()
+    print(length)
+    return length, text
 
-def add_data(text):
-    with open("passwords.txt", "a", encoding="utf8") as f:
-        f.write(str(text) + "\n")
+def add_data(text, length):
+    with open("passwords.bin", "ba") as f:
+        f.write(length)
+        f.write(text)
 
 def read_data():
-    with open("passwords.txt", "r", encoding="utf8") as f:
-        data = f.readlines()
+    with open("passwords.bin", "rb") as f:
+        data = [f.read()]
+    length = []
+    segment = 0
+    while len(data[0]) != 0:
+        length.append(int(data[0][:16], 2))
+        data.append(data[0][16:length[segment]])
+        data[0] = data[0][16+length[segment]:]
+        segment += 1
+    data.pop(0)
     return data
 
 def decode_data(data, seed, counter):
-    text = aes.decrypt(seed, data.encode('iso-8859-15'), counter)
-    return text
+    text = aes.decrypt(seed, data, counter)
+    return text.decode()
 
 def add_entry(counter):
     platform = input("Für welche Plattform soll ein Eintrag erstellt werden?   ")
@@ -29,19 +39,17 @@ def add_entry(counter):
     account_mail = input("Wie lautet die Account-Mail?                             ")
     account_password = input("Wie lautet das Account-Paswort?                          ")
     seed = input("Wie lautet der Verschlüsselungsseed?                     ")
-    encoded = encode_data(platform, account_user_name, account_mail, account_password, seed, counter)
-    add_data(encoded)
+    length, encoded = encode_data(platform, account_user_name, account_mail, account_password, seed, counter)
+    add_data(encoded, length)
 
 def search_entry(entry, seed, counter):
-    entry = str(entry).lower()
+    entry = entry.lower()
     data = []
     headings = []
     data = read_data()
-    for i,e in enumerate(data):
-        data[i] = e.replace("\\\\", "\\")
     for e in data:
         headings += [decode_data(e, seed, counter).split(":")[0]]
-
+    #data muss eine liste von verschlüsselungen sein also muss erstmal die Länge der jeweiligen Str gelesen werden
     no_hit = []
     for i,e in enumerate(headings):
         if entry not in e.lower():
@@ -82,7 +90,7 @@ def decode_entry(entry, seed, counter):
         platform, data = search_entry(entry, seed, counter)
     except IndexError as exc:
         raise exc
-    data = decode_data(seed, data, counter)
+    data = decode_data(data, seed, counter)
     data = data.split()
     text = platform + ":"
     for i in range(0, 6, 2):
@@ -100,7 +108,7 @@ def main():
     while mode != "quit":
         if mode == 'read':
             platform = input("Which entry are you looking for?\n")
-            seed = bytes(input("What is your key?\n"), encoding="utf-8")
+            seed = input("What is your key?\n").encode('latin1')
             try:
                 decode_entry(platform, seed, ctr)
             except IndexError:
@@ -112,8 +120,8 @@ def main():
             account_mail = "Mail" #input("mail: ")
             account_password = "PW" #input("password: ")
             seed = b"1234567890123456" #bytes(input("key: "), encoding="utf-8")
-            text = encode_data(platform, account_user_name, account_mail, account_password, seed, ctr)
-            add_data(text)
+            length, text = encode_data(platform, account_user_name, account_mail, account_password, seed, ctr)
+            add_data(text, length)
             mode = input(directions).lower()
         else:
             mode = input("Command could not be found. " + directions).lower()

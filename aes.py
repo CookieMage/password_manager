@@ -4,14 +4,13 @@ import random
 
 def encrypt(key, plaintext, ctr):
     cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
-    print(plaintext.encode())
     ciphertext = cipher.encrypt(plaintext.encode())
     return ciphertext
 
 def decrypt(key, ciphertext, ctr):
     cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
     plaintext = cipher.decrypt(ciphertext)
-    return plaintext.decode()
+    return plaintext
 
 def main():
     key = b"1234567890123456"

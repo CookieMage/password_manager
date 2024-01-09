@@ -3,3 +3,7 @@ Man liest 16 bytes: Darin ist eine Zahl, welche beschreibt, wieviele bytes den n
 Dann das ganze wiederholen bis man fertig ist
 
 Der Text muss in binärcode sein und dann kann das ganze als beliebiges Dateiformat gespeichert werden
+
+Eintraglänge speichern
+Eintraglänge lesen
+Eintraglänge verstehen und Liste in Einträge unterteilen
