@@ -1,5 +1,6 @@
 import aes
 from Crypto.Util import Counter
+from getpass import getpass
 
 def encode_data(platform, account_user_name, account_mail, account_password, seed, counter):
     text = platform + ":"
@@ -8,7 +9,6 @@ def encode_data(platform, account_user_name, account_mail, account_password, see
     text = aes.encrypt(seed, text, counter)
     length = len(text)
     length = '{0:016b}'.format(length).encode()
-    print(length)
     return length, text
 
 def add_data(text, length):
@@ -23,7 +23,7 @@ def read_data():
     segment = 0
     while len(data[0]) != 0:
         length.append(int(data[0][:16], 2))
-        data.append(data[0][16:length[segment]])
+        data.append(data[0][16:16+length[segment]])
         data[0] = data[0][16+length[segment]:]
         segment += 1
     data.pop(0)
@@ -31,7 +31,7 @@ def read_data():
 
 def decode_data(data, seed, counter):
     text = aes.decrypt(seed, data, counter)
-    return text.decode("iso-8859-1")
+    return text.decode() # "iso-8859-1"
 
 def add_entry(counter):
     platform = input("Für welche Plattform soll ein Eintrag erstellt werden?   ")
@@ -49,7 +49,6 @@ def search_entry(entry, seed, counter):
     data = read_data()
     for e in data:
         headings += [decode_data(e, seed, counter).split(":")[0]]
-    #data muss eine liste von verschlüsselungen sein also muss erstmal die Länge der jeweiligen Str gelesen werden
     no_hit = []
     for i,e in enumerate(headings):
         if entry not in e.lower():
@@ -97,33 +96,41 @@ def decode_entry(entry, seed, counter):
     text = platform + ":"
     for i in range(0, 5, 2):
         text += "\n    " + data[i] + " " + data[i+1]
-    text = "\n" + text[:-1] + "\n"
+    text = "\n" + text + "\n"
     print(text)
 
 
 
 
 def main():
-    with open("passwords.bin", "bw") as f:
-        f.write(b'')
     directions = "If you want to quit, type 'quit'. Do you want to 'add' or 'read' an entry?\n"
-    mode = "add" #input(directions).lower()
+    mode = input(directions).lower()
     ctr = Counter.new(128)
     while mode != "quit":
         if mode == 'read':
             platform = input("Which entry are you looking for?\n")
-            seed = input("What is your key?\n").encode('latin1')
+            seed = None
+            while not seed:
+                try:
+                    seed = bytes(getpass("What is your key?\n"), encoding="utf-8")
+                except ValueError:
+                    print("Dies ist keine valide Eingabe. Ein Seed ist vom Typ bytes mit 16 Elementen.")
             try:
                 decode_entry(platform, seed, ctr)
             except IndexError:
                 print("\nThe platform you are looking for could not be found. Please try again.")
             mode = input(directions).lower()
         elif mode == 'add':
-            platform = "Platform" #input("platform: ")
-            account_user_name = "User" #input("user_name: ")
-            account_mail = "Mail" #input("mail: ")
-            account_password = "PW" #input("password: ")
-            seed = b"1234567890123456" #bytes(input("key: "), encoding="utf-8")
+            platform = input("platform: ")
+            account_user_name = input("user_name: ")
+            account_mail = input("mail: ")
+            account_password = input("password: ")
+            seed = None
+            while not seed:
+                try:
+                    seed = bytes(getpass("key: "), encoding="utf-8")
+                except ValueError:
+                    print("Dies ist keine valide Eingabe. Ein Seed ist vom Typ bytes mit 16 Elementen.")
             length, text = encode_data(platform, account_user_name, account_mail, account_password, seed, ctr)
             add_data(text, length)
             mode = input(directions).lower()
