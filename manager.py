@@ -1,6 +1,8 @@
 import aes
 from Crypto.Util import Counter
 from getpass import getpass
+import sys
+from os.path import isfile
 
 def encode_data(platform, account_user_name, account_mail, account_password, seed, counter):
     text = platform + ":"
@@ -11,13 +13,13 @@ def encode_data(platform, account_user_name, account_mail, account_password, see
     length = '{0:016b}'.format(length).encode()
     return length, text
 
-def add_data(text, length):
-    with open("passwords.bin", "ba") as f:
+def add_data(text, length, write_file = "passwords.bin"):
+    with open(write_file, "ba") as f:
         f.write(length)
         f.write(text)
 
-def read_data():
-    with open("passwords.bin", "rb") as f:
+def read_data(read_file = "passwords.bin"):
+    with open(read_file, "rb") as f:
         data = [f.read()]
     length = []
     segment = 0
@@ -103,6 +105,14 @@ def decode_entry(entry, seed, counter):
 
 
 def main():
+    try:
+        file = sys.argv[1]
+    except IndexError:
+        file = input("What file do you want to look at?\n")
+
+    while not isfile(file):
+        file = input("This file does not exist. Please enter a valid path.\n")
+
     directions = "If you want to quit, type 'quit'. Do you want to 'add' or 'read' an entry?\n"
     mode = input(directions).lower()
     ctr = Counter.new(128)
