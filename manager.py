@@ -31,7 +31,7 @@ def read_data():
 
 def decode_data(data, seed, counter):
     text = aes.decrypt(seed, data, counter)
-    return text.decode()
+    return text.decode("iso-8859-1")
 
 def add_entry(counter):
     platform = input("Für welche Plattform soll ein Eintrag erstellt werden?   ")
@@ -58,8 +58,11 @@ def search_entry(entry, seed, counter):
         headings.pop(e)
         data.pop(e)
 
+    for i,e in enumerate(data):
+        data[i] = decode_data(e, seed, counter)
+
     for i,e in enumerate(headings):
-        data[i] = data[i][len(e)+1:]
+        data[i] = data[i][len(e)+2:]
 
     while len(data) > 1:
         text = "The following entries have been found:\n"
@@ -90,10 +93,9 @@ def decode_entry(entry, seed, counter):
         platform, data = search_entry(entry, seed, counter)
     except IndexError as exc:
         raise exc
-    data = decode_data(data, seed, counter)
     data = data.split()
     text = platform + ":"
-    for i in range(0, 6, 2):
+    for i in range(0, 5, 2):
         text += "\n    " + data[i] + " " + data[i+1]
     text = "\n" + text[:-1] + "\n"
     print(text)
@@ -102,6 +104,8 @@ def decode_entry(entry, seed, counter):
 
 
 def main():
+    with open("passwords.bin", "bw") as f:
+        f.write(b'')
     directions = "If you want to quit, type 'quit'. Do you want to 'add' or 'read' an entry?\n"
     mode = "add" #input(directions).lower()
     ctr = Counter.new(128)

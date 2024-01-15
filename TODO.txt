@@ -7,3 +7,6 @@ Der Text muss in binärcode sein und dann kann das ganze als beliebiges Dateifor
 Eintraglänge speichern
 Eintraglänge lesen
 Eintraglänge verstehen und Liste in Einträge unterteilen
+
+Ich lese aktuel nur die ersten x zeichen allerdings will ich die erste x buchstaben lesen...
+wie mache ich das? Ich muss um das zu machen den Text eigentlich entschlüsseln aber das ist doof...
