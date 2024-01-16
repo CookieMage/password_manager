@@ -1,12 +1,3 @@
-Dateiformat soll so aussehen:
-Man liest 16 bytes: Darin ist eine Zahl, welche beschreibt, wieviele bytes den nächsten Abschnitt ausmchen
-Dann das ganze wiederholen bis man fertig ist
+remove_entry() muss hinzugefügt werden
 
-Der Text muss in binärcode sein und dann kann das ganze als beliebiges Dateiformat gespeichert werden
-
-Eintraglänge speichern
-Eintraglänge lesen
-Eintraglänge verstehen und Liste in Einträge unterteilen
-
-Ich lese aktuel nur die ersten x zeichen allerdings will ich die erste x buchstaben lesen...
-wie mache ich das? Ich muss um das zu machen den Text eigentlich entschlüsseln aber das ist doof...
+update_entry() wäre auch cool
