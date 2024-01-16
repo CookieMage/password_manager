@@ -25,7 +25,7 @@ def read_data(read_file = "passwords.bin"):
     segment = 0
     while len(data[0]) != 0:
         length.append(int(data[0][:16], 2))
-        data.append(data[0][16:16+length[segment]])
+        data.append(data[0][16:length[segment]+16])
         data[0] = data[0][16+length[segment]:]
         segment += 1
     data.pop(0)
