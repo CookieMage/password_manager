@@ -4,6 +4,67 @@ from getpass import getpass
 import sys
 from os.path import isfile
 
+def update_entry(platform, seed, counter, file = "passwords.bin"):
+    action = input("Do you want to update the 'platform', the 'mail', the 'username' or the 'password'?\n If you don't want to do anything, type 'done'.")
+    action = action.lower()
+    platform, data = search_entry(platform, seed, counter)
+    data = data.split()
+    while action != "done":
+        match action:
+            case "platform":
+                change = input("What should the new platform be?")
+                confirm = input("Please type 'confirm' if you want to continue.")
+                if confirm.lower() == "confirm":
+                    platform = change
+            case "username":
+                change = input("What should the new mail be?")
+                confirm = input("Please type 'confirm' if you want to continue.")
+                if confirm.lower() == "confirm":
+                    data[1] = change
+            case "mail":
+                change = input("What should the new mail be?")
+                confirm = input("Please type 'confirm' if you want to continue.")
+                if confirm.lower() == "confirm":
+                    data[3] = change
+            case "password":
+                change = input("What should the new mail be?")
+                confirm = input("Please type 'confirm' if you want to continue.")
+                if confirm.lower() == "confirm":
+                    data[5] = change
+            case _:
+                print("NOT FINISHED")
+        action = input("Do you want to update the 'platform', the 'mail', the 'username' or the 'password'?\n If you don't want to do anything, type 'done'.")
+    print("Hier muss jetzt der alte Eintrag gelöscht werden und der neue geschrieben werden :(")
+
+def remove_entry(platform, seed, counter, file = "passwords.bin"):
+    data = read_data(file)
+    data = [decode_data(e, seed, counter) for e in data]
+    num = []
+    for i,e in enumerate(data):
+        if platform in e.split(":")[0]:
+            num += [i]
+    while len(num) > 1:
+        text = "The following entries have been found:\n"
+        for i,e in enumerate(num):
+            text += f"    {e}) {data[e].split(':')[0]}\n"
+        text += "Please choose one of these entries.\n"
+        choice = input(text)
+        try:
+            for e in num:
+                if e == int(choice):
+                    data = [data[e]]
+        except ValueError:
+            if len(data) > 1:
+                print("The platform you meant could not be identified. Please try again.")
+    data = read_data(file)
+    data.pop(num[0])
+    for i,e in enumerate(data):
+        data[i]=data[i].split()
+    for e in data:
+        ctr = Counter.new(128)
+        length, encoded = encode_data(e[0], e[1], e[2], e[3], seed, ctr)
+        add_data(encoded, length, file)
+
 def encode_data(platform, account_user_name, account_mail, account_password, seed, counter):
     text = platform + ":"
     text += " Username: " + account_user_name + " Mail: " + account_mail
@@ -33,7 +94,7 @@ def read_data(read_file = "passwords.bin"):
 
 def decode_data(data, seed, counter):
     text = aes.decrypt(seed, data, counter)
-    return text.decode() # "iso-8859-1"
+    return text.decode()
 
 def add_entry(counter):
     platform = input("Für welche Plattform soll ein Eintrag erstellt werden?   ")
@@ -144,6 +205,22 @@ def main():
             length, text = encode_data(platform, account_user_name, account_mail, account_password, seed, ctr)
             add_data(text, length)
             mode = input(directions).lower()
+        # elif mode == 'remove':
+        #     platform = input("Which entry do you want to remove?\n")
+        #     seed = None
+        #     while not seed:
+        #         try:
+        #             seed = bytes(getpass("What is your key?\n"), encoding="utf-8")
+        #             if seed == b'0000000000000000':
+        #                 seed = None
+        #                 print("Dies ist keine valide Eingabe. Ein Seed ist vom Typ bytes mit 16 Elementen.")
+        #         except ValueError:
+        #             print("Dies ist keine valide Eingabe. Ein Seed ist vom Typ bytes mit 16 Elementen.")
+        #     try:
+        #         remove_entry(platform, seed, ctr, file)
+        #     except IndexError:
+        #         print("\nThe platform you are looking for could not be found. Please try again.")
+        #     mode = input(directions).lower()
         else:
             mode = input("Command could not be found. " + directions).lower()
 
